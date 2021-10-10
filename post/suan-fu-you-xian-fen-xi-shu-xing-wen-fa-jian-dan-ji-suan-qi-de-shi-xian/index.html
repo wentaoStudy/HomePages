@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>算符优先分析+属性文法 简单计算器的实现 | wentaoStudy</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://wentaoStudy.github.io/wentaoStudy/favicon.ico?v=1633866862373">
+<link rel="stylesheet" href="https://wentaoStudy.github.io/wentaoStudy/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="写在前面
+
+这是本人编译原理的课程作业，仅提供参考作用，不建议直接拷贝作为作业进行提交，如果文章或者代码中出现错误，欢迎指正
+
+参考文章
+
+编译原理——算符优先语法分析
+
+构造简单的算符优先文法
+G(E)
+E-&gt; E+T|E-T|T
+..." />
+    <meta name="keywords" content="计算机,编译原理" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://wentaoStudy.github.io/wentaoStudy">
+        <img src="https://wentaoStudy.github.io/wentaoStudy/images/avatar.png?v=1633866862373" class="site-logo">
+        <h1 class="site-title">wentaoStudy</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      温故而知新
+    </div>
+    <div class="site-footer">
+      Powered by wentaoStudy | <a class="rss" href="https://wentaoStudy.github.io/wentaoStudy/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">算符优先分析+属性文法 简单计算器的实现</h2>
+            <div class="post-date">2021-10-10</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="写在前面">写在前面</h2>
+<blockquote>
+<p>这是本人编译原理的课程作业，仅提供参考作用，不建议直接拷贝作为作业进行提交，如果文章或者代码中出现错误，欢迎指正</p>
+</blockquote>
+<h2 id="参考文章">参考文章</h2>
+<blockquote>
+<p><a href="https://hnjia00.github.io/2019/05/12/%E7%BC%96%E8%AF%91%E5%8E%9F%E7%90%86%E2%80%94%E2%80%94%E7%AE%97%E7%AC%A6%E4%BC%98%E5%85%88%E8%AF%AD%E6%B3%95%E5%88%86%E6%9E%90/">编译原理——算符优先语法分析</a></p>
+</blockquote>
+<h2 id="构造简单的算符优先文法">构造简单的算符优先文法</h2>
+<pre><code>G(E)
+E-&gt; E+T|E-T|T
+T-&gt; T*F|T/F|F
+F-&gt; (E)|i
+</code></pre>
+<p>因为使用规约的方式，所以不用考虑左递归产生的影响</p>
+<h2 id="实现步骤">实现步骤</h2>
+<ol>
+<li>计算出各个非终结符的FIRSTVT和LASTVT</li>
+<li>根据FIRSTVT和LASTVT构造优先关系表</li>
+<li>根据优先关系表进行移进归约</li>
+</ol>
+<h2 id="计算各个非终结符的firstvt和lastvt集合">计算各个非终结符的FIRSTVT和LASTVT集合</h2>
+<h3 id="firstvt">FIRSTVT</h3>
+<blockquote>
+<p>如果存在文法 A-&gt;aB... 或者 A-&gt;Ba... 则 a ∈ FIRSTVT(A)<br>
+如果存在文法 A-&gt;B... 则FIRSTVT(B) ∈ FIRSTVT(A)<br>
+所以文法中G(E)中的所有非终结符的FIRSTVT为</p>
+</blockquote>
+<pre><code>FIRSTVT(E) = {+,-,*,/,(,i}
+FIRSTVT(T) = {*,/,(,i}
+FIRSTVT(F) = {(,i}
+</code></pre>
+<h3 id="lastvt">LASTVT</h3>
+<blockquote>
+<p>如果存在文法 A-&gt;...aB 或者 A-&gt;...a 则 a ∈ LASTVT(A)<br>
+如果存在文法 a ∈ LASTVT(B) 且 A-&gt;...B 则 a ∈ LASTVT(A)<br>
+所以文法中G(E)中的所有非终结符的LASTVT为</p>
+</blockquote>
+<pre><code>LASTVT(E) = {+,-,*,/,),i}
+LASTVT(T) = {*,/,),i}
+LASTVT(F) = {),i}
+</code></pre>
+<h2 id="根据firstvt和lastvt构造优先关系表">根据FIRSTVT和LASTVT构造优先关系表</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">+</th>
+<th style="text-align:center">-</th>
+<th style="text-align:center">*</th>
+<th style="text-align:center">/</th>
+<th style="text-align:center">(</th>
+<th style="text-align:center">)</th>
+<th style="text-align:center">i</th>
+<th style="text-align:center">#</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">+</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">-</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">*</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">/</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">(</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＝</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">)</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">i</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">＞</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">＞</td>
+</tr>
+<tr>
+<td style="text-align:center">#</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center"></td>
+<td style="text-align:center">＜</td>
+<td style="text-align:center">＝</td>
+</tr>
+</tbody>
+</table>
+<h2 id="根据算符优先文法的规则构建算符优先文法的代码就是判断什么时候规约什么时候移进">根据算符优先文法的规则构建算符优先文法的代码，就是判断什么时候规约，什么时候移进</h2>
+<blockquote>
+<p>注！！！算符优先文法的规约只判断终结符，跳过非终结符进行比较</p>
+</blockquote>
+<p>这里算符优先文法的实现依赖于词法分析的实现，所以这里先贴上词法分析的代码</p>
+<blockquote>
+<p>文件名：lab1.py</p>
+</blockquote>
+<pre><code class="language-python">'''
+@Author: wentaoStudy
+@Date: 2020-05-13 10:44:03
+@LastEditTime: 2020-06-30 17:57:24
+@LastEditors: wentaoStudy
+@Email: 2335844083@qq.com
+'''
+
+class NormalFunctions:
+    def __init__(self , strInput):
+        self.ch = ''
+        self.strToken = &quot;&quot;
+        self.strInput = strInput
+        self.index = 0
+        # self.reserve = [&quot;const&quot;, &quot;var&quot;, &quot;procedure&quot;, &quot;call&quot;, &quot;begin&quot;, &quot;end&quot;, &quot;if&quot;, &quot;then&quot;, &quot;while&quot;, &quot;do&quot;, &quot;odd&quot;, &quot;.&quot;, &quot;,&quot;, &quot;=&quot;, &quot;;&quot;, &quot;:=&quot;, &quot;#&quot;, &quot;&lt;&quot;, &quot;&gt;&quot;, &quot;+&quot;, &quot;-&quot;, &quot;*&quot;, &quot;/&quot;, &quot;(&quot;, &quot;)&quot;]
+        self.word_reserve = [&quot;begin&quot; , &quot;end&quot; , &quot;if&quot; , &quot;then&quot; , &quot;while&quot; , &quot;do&quot; , &quot;const&quot; , &quot;var&quot; , &quot;call&quot; , &quot;procedure&quot;]
+        self.compute_reserve = [&quot;+&quot; , &quot;-&quot; , &quot;*&quot; , &quot;/&quot; , &quot;odd&quot; , &quot;=&quot; , &quot;&lt;&gt;&quot; , &quot;&lt;&quot; , &quot;&gt;&quot; , &quot;&lt;=&quot; , &quot;&gt;=&quot; , &quot;:=&quot; ]
+        self.boder_reserve = [&quot;(&quot; , &quot;)&quot; , &quot;,&quot; , &quot;.&quot; , &quot;;&quot;]
+        self.Id = []
+        self.Const = []
+
+    def GetChar(self):
+        if self.index &lt; len(self.strInput):
+            self.ch = self.strInput[self.index]
+            self.index += 1
+        else: 
+            self.ch = ''
+            self.index += 1
+    
+    def GetBC(self):
+        while(self.ch == &quot; &quot;):
+            self.GetChar()
+    
+    def Concat(self):
+        self.strToken += self.ch
+
+    def IsLetter(self):
+        Char = self.ch
+        if((Char&gt;='a' and Char&lt;='z') or( Char&gt;='A' and Char&lt;='Z')):
+            return True
+        else:
+            return False
+
+    def IsDigit(self):
+        try:
+            int(self.ch)
+            return True
+        except:
+            return False
+
+    def Reserve(self):
+        try:
+            index = self.reserve.index(self.strToken)
+            return index + 1
+        except:
+            return 0
+    
+    def Word_Reserve(self):
+        try:
+            index = self.word_reserve.index(self.strToken)
+            return index + 1
+        except:
+            return 0
+
+    def Compute_Reserve(self):
+        try:
+            index = self.compute_reserve.index(self.strToken)
+            return index + 1
+        except:
+            return 0
+
+    def Boder_Reserve(self):
+        try:
+            index = self.boder_reserve.index(self.strToken)
+            return index + 1
+        except:
+            return 0
+
+    def Retract(self):
+        # if self.index &gt; 0 and self.index &lt; len(self.strInput):
+        if self.index &gt; 0:
+            self.index -= 1
+    
+    def InsertId(self):
+        self.Id.append(self.strToken)
+        return len(self.Id)
+
+    def InsertConst(self):
+        self.Concat.append(self.strToken)
+        return len(self.Id)
+
+    #实现类内自己编译
+    def Self_Compile(self):
+        while(self.index &lt; len(self.strInput)):
+            self.Compile_Str()
+            self.strToken = &quot;&quot;
+    
+    def Compile_Str(self):
+        self.GetChar()
+        self.GetBC()
+        if(self.IsLetter()):
+            while((self.IsLetter() or self.IsDigit()) ):
+                self.Concat() 
+                self.GetChar()
+            self.Retract()
+            # self.Retract()
+            word_code = self.Word_Reserve()
+            compute_code = self.Compute_Reserve()
+            if word_code == 0 and compute_code == 0:
+                value = self.InsertId()
+                print(&quot;&lt; 标识符&quot; , self.strToken , &quot;-&quot;  &quot;&gt;&quot;)
+            else :
+                if word_code &gt; 0 :
+                    print(&quot;&lt; 保留字&quot; , self.strToken , word_code , &quot;&gt;&quot;)
+                if compute_code &gt; 0:
+                    print(&quot;&lt; 算符&quot; , self.strToken , compute_code , &quot;&gt;&quot;)
+        elif(self.IsDigit()):
+            while(self.IsDigit()):
+                self.Concat() 
+                self.GetChar()
+            self.Retract()
+            # self.Retract()
+            value = self.InsertId()
+            print(&quot;&lt; 常数&quot;  ,self.strToken , value ,  &quot;&gt;&quot;)
+        else:
+            #这里描述界符和运算符
+            self.Concat()
+            compute_code = self.Compute_Reserve()
+            boder_code = self.Boder_Reserve()
+            if compute_code == 0 and boder_code == 0: 
+                self.GetChar()
+                self.Concat()
+                if self.Compute_Reserve() &gt; 0:
+                    print(&quot;&lt; 算符&quot; , self.strToken , self.Compute_Reserve() , &quot;&gt;&quot;)
+                else:
+                    self.Retract()
+                    #异常处理
+                    pass
+            elif boder_code &gt; 0:
+                print(&quot;&lt; 界符&quot; , self.strToken , self.Boder_Reserve() , &quot;&gt;&quot;)
+            elif compute_code &gt; 0:
+                if compute_code &gt; 6:
+                    self.GetChar()
+                    self.Concat()
+                    if self.Compute_Reserve() &gt; 0:
+                        print(&quot;&lt; 算符&quot; , self.strToken , self.Compute_Reserve() , &quot;&gt;&quot;)
+                    else:
+                        self.Retract()
+                        #异常处理
+                        pass
+                else:
+                    print(&quot;&lt; 算符&quot; , self.strToken , self.Compute_Reserve() , &quot;&gt;&quot;)
+            else:
+                self.Retract()
+                #异常处理
+                pass
+
+#进行测试的代码
+#strInput = &quot;1*i+1 )(&quot;
+#func = NormalFunctions(strInput)
+#func.Self_Compile()
+</code></pre>
+<p>算符优先文法+属性文法实现简单的4则计算器</p>
+<blockquote>
+<p>文件名：lab3.py</p>
+</blockquote>
+<pre><code class="language-python">'''
+@Author: wentaoStudy
+@Date: 2020-06-29 08:47:51
+@LastEditTime: 2020-06-30 18:07:25
+@LastEditors: wentaoStudy
+@Email: 2335844083@qq.com
+'''
+from lab1 import NormalFunctions
+
+PRT = [
+    ['&gt;','&gt;','&lt;','&lt;','&lt;','&gt;','&lt;','&gt;'],
+    ['&gt;','&gt;','&lt;','&lt;','&lt;','&gt;','&lt;','&gt;'],
+    ['&gt;','&gt;','&gt;','&gt;','&lt;','&gt;','&lt;','&gt;'],
+    ['&gt;','&gt;','&gt;','&gt;','&lt;','&gt;','&lt;','&gt;'],
+    ['&lt;','&lt;','&lt;','&lt;','&lt;','=','&lt;',' '],
+    ['&gt;','&gt;','&gt;','&gt;',' ','&gt;',' ','&gt;'],
+    ['&gt;','&gt;','&gt;','&gt;',' ','&gt;',' ','&gt;'],
+    ['&lt;','&lt;','&lt;','&lt;','&lt;',' ','&gt;','=']
+]
+
+Terminators = ['+','-','*','/','(',')','i','#']
+
+# G(E)
+# E-&gt; E+T|E-T|T
+# T-&gt; T*F|T/F|F
+# F-&gt; (E)|i
+
+rules = {
+    &quot;N&quot;:[&quot;N+N&quot; , &quot;N-N&quot; , &quot;N*N&quot; , &quot;N/N&quot; , &quot;(N)&quot; , &quot;i&quot;]
+}
+
+from enum import Enum
+class proprity_type(Enum):
+    ntm = 1
+    tm = 2
+
+class property():
+    def __init__(self , i_type , i_name , i_val):
+        self.i_type = i_type
+        self.i_name = i_name
+        self.i_val = i_val
+    
+
+NTM = [&quot;N&quot;] 
+TM = [&quot;(&quot; , &quot;)&quot; , &quot;+&quot; , &quot;-&quot; , &quot;*&quot; , &quot;/&quot; , &quot;i&quot;]
+
+class move_into_reduction_proprity():
+
+    def if_number(self , str):
+        rt = False
+        try:
+            int(str)
+            rt = True
+        except:
+            rt = False
+        return rt
+
+    def tindex(self , char):
+        return Terminators.index(char)
+
+    def __init__(self , input_str):
+        self.input_list = []
+
+        #调用词法分析
+        self.nf = NormalFunctions(input_str)
+        while(self.nf.index &lt; len(self.nf.strInput)):
+            self.nf.Compile_Str()
+            self.input_list.append(self.nf.strToken)
+            self.nf.strToken = &quot;&quot;
+        
+        print(self.input_list)
+        
+        self.reduction_stack = []
+        self.proprity_stack = []
+        self.proprity_stack.append(property(proprity_type.tm , &quot;#&quot; , &quot;#&quot;))
+        for i in self.input_list:
+            if i in NTM:
+                self.proprity_stack.append(property(proprity_type.ntm , i , 0))  
+            elif self.if_number(i):
+                self.proprity_stack.append(property(proprity_type.tm , &quot;i&quot; , int(i))) 
+            elif i in TM:
+                self.proprity_stack.append(property(proprity_type.tm , i , i))
+            else:
+                print(&quot;类型错误&quot;)
+        self.proprity_stack.append(property(proprity_type.tm , &quot;#&quot; , &quot;#&quot;))
+        self.input_list = self.proprity_stack[1:]
+        self.reduction_stack = []
+        self.reduction_stack.append((self.proprity_stack[0]))
+                
+    def move_into(self):
+        if len(self.input_list )!= 0:
+            self.reduction_stack.append(self.input_list[0])
+            self.input_list.pop(0)
+    
+    def self_reduction(self , left ,  right):
+        tempstr = &quot;&quot;
+        for i in range(left , right+1):
+            tempstr += self.reduction_stack[i].i_name
+        temp_val = 0
+        if tempstr == &quot;i&quot;:
+            temp_val = int(self.reduction_stack[left].i_val)
+        elif tempstr == &quot;N+N&quot;:
+            val1 = self.reduction_stack[left].i_val
+            val2 = self.reduction_stack[left+2].i_val
+            temp_val = val1 + val2
+        elif tempstr == &quot;N-N&quot;:
+            val1 = self.reduction_stack[left].i_val
+            val2 = self.reduction_stack[left+2].i_val
+            temp_val = val1 - val2
+        elif tempstr == &quot;N*N&quot;:
+            val1 = self.reduction_stack[left].i_val
+            val2 = self.reduction_stack[left+2].i_val
+            temp_val = val1 * val2
+        elif tempstr == &quot;N/N&quot;:
+            val1 = self.reduction_stack[left].i_val
+            val2 = self.reduction_stack[left+2].i_val
+            temp_val = val1 / val2
+        elif tempstr == &quot;(N)&quot;:
+            temp_val = self.reduction_stack[left+1].i_val
+        print(tempstr + &quot; -&gt; N&quot;)
+        for i in range(left , right+1).__reversed__():
+            self.reduction_stack.pop(i)
+        self.reduction_stack.append(property(proprity_type.ntm , &quot;N&quot; , temp_val))
+
+    def judge_can_reduction(self , left , right):
+        tempstr = &quot;&quot;
+        for i in range(left , right+1):
+            tempstr += self.reduction_stack[i].i_name
+        if tempstr in rules[&quot;N&quot;]:
+            return True
+        else:
+            return False
+
+    def lmp_d(self):
+        l = 0 
+        r = 0
+        lr_list = [&quot;#&quot;]
+        lasti = 0
+        for i , value in enumerate(self.reduction_stack):
+            if value.i_name in TM:
+                lr_list.append(value.i_name)
+                row = self.tindex(lr_list[len(lr_list) - 2])
+                col = self.tindex(lr_list[len(lr_list) - 1])
+                if PRT[row][col] == &quot;&lt;&quot;:
+                    l = lasti 
+                elif PRT[row][col] == &quot;&gt;&quot;:
+                    r = i - 1
+                lasti = i
+        if self.input_list[0].i_name in Terminators:
+            row = self.tindex(lr_list[len(lr_list) - 1])
+            col = self.tindex(self.input_list[0].i_name)
+            if PRT[row][col] == &quot;&gt;&quot;:
+                r = len(self.reduction_stack) - 1
+        if r &gt; 0:
+            if self.judge_can_reduction(l+1 , r):
+                self.self_reduction(l+1 , r)
+                self.lmp_d()
+            else:
+                print(&quot;不可归约&quot;)
+
+    def statue(self):
+        while(len(self.input_list) != 0):
+            if(self.input_list[0].i_name == &quot;#&quot;):
+                print(&quot;归约结束&quot;)
+                break
+            self.move_into()
+            self.lmp_d()
+        for i in self.reduction_stack:
+            print(i.i_name , i.i_val)
+        if len(self.reduction_stack) != 2:
+            print(&quot;归约错误&quot;)
+        # print(self.reduction_stack)
+mir = move_into_reduction_proprity(&quot;(3*(1+2)*100)&quot;)
+mir.statue()
+
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://wentaoStudy.github.io/wentaoStudy/tag/PbSNDQlP2/" class="tag">
+                    计算机
+                  </a>
+                
+                  <a href="https://wentaoStudy.github.io/wentaoStudy/tag/4MFLXywlG/" class="tag">
+                    编译原理
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://wentaoStudy.github.io/wentaoStudy/post/study/">
+                  <h3 class="post-title">
+                    Study
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+  <script src="https://cdn.bootcss.com/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad()
+  </script>
+
+
+
+
+
+  </body>
+</html>
