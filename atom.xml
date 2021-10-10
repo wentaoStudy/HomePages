@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://wentaoStudy.github.io/wentaoStudy</id>
     <title>wentaoStudy</title>
-    <updated>2021-10-10T11:54:35.457Z</updated>
+    <updated>2021-10-10T11:56:02.232Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://wentaoStudy.github.io/wentaoStudy"/>
     <link rel="self" href="https://wentaoStudy.github.io/wentaoStudy/atom.xml"/>
@@ -16,19 +16,5 @@
         <link href="https://wentaoStudy.github.io/wentaoStudy/post/suan-fu-you-xian-fen-xi-shu-xing-wen-fa-jian-dan-ji-suan-qi-de-shi-xian/">
         </link>
         <updated>2021-10-10T11:51:13.000Z</updated>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Study]]></title>
-        <id>https://wentaoStudy.github.io/wentaoStudy/post/study/</id>
-        <link href="https://wentaoStudy.github.io/wentaoStudy/post/study/">
-        </link>
-        <updated>2021-10-10T03:55:19.000Z</updated>
-    </entry>
-    <entry>
-        <title type="html"><![CDATA[Hello Gridea]]></title>
-        <id>https://wentaoStudy.github.io/wentaoStudy/post/hello-gridea/</id>
-        <link href="https://wentaoStudy.github.io/wentaoStudy/post/hello-gridea/">
-        </link>
-        <updated>2018-12-11T16:00:00.000Z</updated>
     </entry>
 </feed>
