@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://wentaoStudy.github.io/wentaoStudy</id>
+    <id>https://wentaoStudy.github.io/HomePages</id>
     <title>wentaoStudy</title>
-    <updated>2021-10-11T03:05:25.432Z</updated>
+    <updated>2021-10-11T03:08:53.695Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://wentaoStudy.github.io/wentaoStudy"/>
-    <link rel="self" href="https://wentaoStudy.github.io/wentaoStudy/atom.xml"/>
+    <link rel="alternate" href="https://wentaoStudy.github.io/HomePages"/>
+    <link rel="self" href="https://wentaoStudy.github.io/HomePages/atom.xml"/>
     <subtitle>温故而知新</subtitle>
-    <logo>https://wentaoStudy.github.io/wentaoStudy/images/avatar.png</logo>
-    <icon>https://wentaoStudy.github.io/wentaoStudy/favicon.ico</icon>
+    <logo>https://wentaoStudy.github.io/HomePages/images/avatar.png</logo>
+    <icon>https://wentaoStudy.github.io/HomePages/favicon.ico</icon>
     <rights>All rights reserved 2021, wentaoStudy</rights>
     <entry>
         <title type="html"><![CDATA[算符优先分析+属性文法 简单计算器的实现]]></title>
-        <id>https://wentaoStudy.github.io/wentaoStudy/post/suan-fu-you-xian-fen-xi-shu-xing-wen-fa-jian-dan-ji-suan-qi-de-shi-xian/</id>
-        <link href="https://wentaoStudy.github.io/wentaoStudy/post/suan-fu-you-xian-fen-xi-shu-xing-wen-fa-jian-dan-ji-suan-qi-de-shi-xian/">
+        <id>https://wentaoStudy.github.io/HomePages/post/suan-fu-you-xian-fen-xi-shu-xing-wen-fa-jian-dan-ji-suan-qi-de-shi-xian/</id>
+        <link href="https://wentaoStudy.github.io/HomePages/post/suan-fu-you-xian-fen-xi-shu-xing-wen-fa-jian-dan-ji-suan-qi-de-shi-xian/">
         </link>
         <updated>2021-10-10T11:51:13.000Z</updated>
     </entry>
